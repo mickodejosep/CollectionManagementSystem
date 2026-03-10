@@ -1,0 +1,10 @@
+<section class="card">
+  <h3>{{ title() }}</h3>
+  <p>
+    @if (isCurrency()) {
+      {{ value() | currency: 'USD' : 'symbol' : '1.0-0' }}
+    } @else {
+      {{ value() }}
+    }
+  </p>
+</section>

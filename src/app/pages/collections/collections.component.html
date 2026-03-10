@@ -1,0 +1,59 @@
+<section class="collections-page">
+  <header>
+    <h1>Collections Management</h1>
+    <p>Add, edit, and track collection records.</p>
+  </header>
+
+  @if (successMessage()) {
+    <p class="toast">{{ successMessage() }}</p>
+  }
+
+  <form [formGroup]="collectionForm" (ngSubmit)="submit()" class="collection-form" novalidate>
+    <input type="text" formControlName="collectorName" placeholder="Collector name" />
+    <input type="number" formControlName="amount" placeholder="Amount" />
+    <input type="date" formControlName="collectionDate" />
+    <input type="text" formControlName="remarks" placeholder="Remarks" />
+    <button type="submit">{{ submitLabel() }}</button>
+    @if (editingId()) {
+      <button type="button" class="secondary" (click)="cancelEdit()">Cancel</button>
+    }
+  </form>
+
+  @if (collectionForm.touched && collectionForm.invalid) {
+    <small class="error">Please provide valid collector name, amount, date, and remarks.</small>
+  }
+
+  @if (collections().length > 0) {
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Collector</th>
+            <th>Amount</th>
+            <th>Date</th>
+            <th>Remarks</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (record of collections(); track record.id) {
+            <tr>
+              <td>{{ record.id }}</td>
+              <td>{{ record.collectorName }}</td>
+              <td>{{ record.amount | currency: 'USD' }}</td>
+              <td>{{ record.collectionDate | date: 'mediumDate' }}</td>
+              <td>{{ record.remarks }}</td>
+              <td>
+                <button type="button" class="secondary" (click)="startEdit(record)">Edit</button>
+                <button type="button" class="danger" (click)="delete(record)">Delete</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else {
+    <app-empty-state message="No collection records yet. Add your first record above."></app-empty-state>
+  }
+</section>
