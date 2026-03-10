@@ -1,0 +1,24 @@
+<section class="dashboard">
+  <header>
+    <h1>Welcome to your dashboard</h1>
+    <p>Track users and collection performance at a glance.</p>
+  </header>
+
+  <div class="cards">
+    <app-summary-card title="Total Users" [value]="summary().totalUsers"></app-summary-card>
+    <app-summary-card title="Collections This Month" [value]="summary().totalCollectionsThisMonth" [isCurrency]="true"></app-summary-card>
+    <app-summary-card title="Overall Collections" [value]="summary().overallCollections" [isCurrency]="true"></app-summary-card>
+  </div>
+
+  <section class="chart">
+    <h2>Monthly Collections</h2>
+    <div class="bars">
+      @for (value of monthlySeries(); track $index) {
+        <div class="bar-group">
+          <div class="bar" [style.height.%]="(value / maxValue()) * 100"></div>
+          <span>{{ $index + 1 }}</span>
+        </div>
+      }
+    </div>
+  </section>
+</section>
