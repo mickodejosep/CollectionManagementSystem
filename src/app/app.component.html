@@ -1,0 +1,9 @@
+<div class="app-shell" [class.logged-in]="showShell()">
+  @if (showShell()) {
+    <app-navbar></app-navbar>
+  }
+
+  <main class="app-content" [class.with-nav]="showShell()">
+    <router-outlet></router-outlet>
+  </main>
+</div>

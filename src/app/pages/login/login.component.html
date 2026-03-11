@@ -1,0 +1,24 @@
+<section class="login-wrapper">
+  <form [formGroup]="loginForm" (ngSubmit)="submit()" class="login-card" novalidate>
+    <h1>Welcome Back</h1>
+    <p>Sign in to continue to the Collection Management System.</p>
+
+    <label for="email">Email</label>
+    <input id="email" type="email" formControlName="email" placeholder="you@example.com" />
+    @if (loginForm.controls.email.touched && loginForm.controls.email.invalid) {
+      <small>Please enter a valid email address.</small>
+    }
+
+    <label for="password">Password</label>
+    <input id="password" type="password" formControlName="password" placeholder="Minimum 6 characters" />
+    @if (loginForm.controls.password.touched && loginForm.controls.password.invalid) {
+      <small>Password is required and must be at least 6 characters.</small>
+    }
+
+    @if (authError()) {
+      <small class="error">{{ authError() }}</small>
+    }
+
+    <button type="submit" [disabled]="isSubmitting()">{{ isSubmitting() ? 'Signing in...' : 'Login' }}</button>
+  </form>
+</section>
