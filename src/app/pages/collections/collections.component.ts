@@ -6,10 +6,11 @@ import { CollectionRecord } from '../../core/models/collection.model';
 import { EmptyStateComponent } from '../../shared/empty-state/empty-state.component';
 
 @Component({
+  standalone: true,
   selector: 'app-collections',
   imports: [ReactiveFormsModule, CurrencyPipe, DatePipe, EmptyStateComponent],
   templateUrl: './collections.component.html',
-  styleUrl: './collections.component.scss'
+  styleUrls: ['./collections.component.scss']
 })
 export class CollectionsComponent {
   private readonly fb = inject(FormBuilder);

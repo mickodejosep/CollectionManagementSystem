@@ -1,44 +1,56 @@
-import { Component, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
-import { AuthService } from '../../core/services/auth.service';
+import { Component } from "@angular/core";
+import { Router } from "@angular/router";
+import { AuthService } from "../../core/services/auth.service";
+import { FormsModule } from "@angular/forms";
 
 @Component({
-  selector: 'app-login',
-  imports: [ReactiveFormsModule],
-  templateUrl: './login.component.html',
-  styleUrl: './login.component.scss'
+  selector: "app-login",
+  standalone: true,
+  imports: [FormsModule],
+  templateUrl: "./login.component.html",
+  styleUrls: ["./login.component.scss"],
 })
 export class LoginComponent {
-  private readonly fb = inject(FormBuilder);
-  private readonly authService = inject(AuthService);
-  private readonly router = inject(Router);
+  email = "";
+  password = "";
+  errorMessage = "";
+  loading = false;
 
-  readonly isSubmitting = signal(false);
-  readonly authError = signal<string | null>(null);
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+  ) {}
 
-  readonly loginForm = this.fb.nonNullable.group({
-    email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(6)]]
-  });
+  async onLogin(): Promise<void> {
+    console.log("Login button clicked");
+    console.log("Email:", this.email);
+    console.log("Password:", this.password);
+    this.loading = true;
+    this.errorMessage = "";
 
-  submit(): void {
-    this.authError.set(null);
-    if (this.loginForm.invalid) {
-      this.loginForm.markAllAsTouched();
-      return;
-    }
+    try {
+      const result = await this.authService.login({
+        email: this.email,
+        password: this.password,
+      });
 
-    this.isSubmitting.set(true);
-    const success = this.authService.login(this.loginForm.getRawValue());
+      console.log("Login result:", result);
 
-    setTimeout(() => {
-      this.isSubmitting.set(false);
-      if (success) {
-        this.router.navigate(['/dashboard']);
-      } else {
-        this.authError.set('Login failed. Please use valid credentials.');
+      this.loading = false;
+
+      if (!result.success) {
+        this.errorMessage = result.message || "Login failed";
+        console.log("Login failed:", this.errorMessage);
+        return;
       }
-    }, 400);
+
+      console.log("Login success, navigating to dashboard");
+      this.router.navigate(["/dashboard"]);
+    } catch (error) {
+      console.error("Unexpected login error:", error);
+      this.errorMessage = "Something went wrong.";
+    } finally {
+      this.loading = false;
+    }
   }
 }
