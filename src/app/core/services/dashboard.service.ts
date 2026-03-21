@@ -1,6 +1,6 @@
 import { Injectable, computed, inject } from '@angular/core';
 import { CollectionService } from './collection.service';
-import { DashboardSummary } from '../models/collection.model';
+import { DashboardSummary } from '../models/dashboard.model';
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
@@ -17,7 +17,7 @@ export class DashboardService {
       .reduce((sum, record) => sum + record.amount, 0);
 
     return {
-      totalUsers: 42,
+      totalUsers: 2, // Placeholder, implement user counting logic as needed
       totalCollectionsThisMonth,
       overallCollections: records.reduce((sum, record) => sum + record.amount, 0)
     };

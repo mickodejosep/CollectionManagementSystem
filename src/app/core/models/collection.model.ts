@@ -6,8 +6,9 @@ export interface CollectionRecord {
   remarks: string;
 }
 
-export interface DashboardSummary {
-  totalUsers: number;
-  totalCollectionsThisMonth: number;
-  overallCollections: number;
+export interface CollectionPayload {
+  collectorName: string;
+  amount: number;
+  collectionDate: string;
+  remarks: string;
 }

@@ -1,54 +1,104 @@
-import { Injectable, signal } from '@angular/core';
-import { CollectionRecord } from '../models/collection.model';
+import { Injectable, inject, signal } from '@angular/core';
+import { SupabaseService } from './supabase.service';
+import { CollectionPayload, CollectionRecord } from '../models/collection.model';
 
-@Injectable({ providedIn: 'root' })
+interface CollectionRow {
+  id: string;
+  collector_name: string;
+  amount: number;
+  collection_date: string;
+  remarks: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+@Injectable({
+  providedIn: 'root'
+})
 export class CollectionService {
-  private readonly storageKey = 'cms-collections';
-  readonly collections = signal<CollectionRecord[]>(this.loadInitialData());
+  private readonly supabaseService = inject(SupabaseService);
 
-  addCollection(record: Omit<CollectionRecord, 'id'>): void {
-    const next: CollectionRecord = { ...record, id: crypto.randomUUID() };
-    this.collections.update((current) => [next, ...current]);
-    this.persist();
+  readonly collections = signal<CollectionRecord[]>([]);
+
+  constructor() {
+    this.loadCollections();
   }
 
-  updateCollection(id: string, updated: Omit<CollectionRecord, 'id'>): void {
-    this.collections.update((current) =>
-      current.map((record) => (record.id === id ? { ...updated, id } : record))
-    );
-    this.persist();
-  }
+  async loadCollections(): Promise<void> {
+    const { data, error } = await this.supabaseService.supabase
+      .from('collections')
+      .select('*')
+      .order('collection_date', { ascending: false });
 
-  deleteCollection(id: string): void {
-    this.collections.update((current) => current.filter((record) => record.id !== id));
-    this.persist();
-  }
-
-  private persist(): void {
-    localStorage.setItem(this.storageKey, JSON.stringify(this.collections()));
-  }
-
-  private loadInitialData(): CollectionRecord[] {
-    const raw = localStorage.getItem(this.storageKey);
-    if (raw) {
-      return JSON.parse(raw) as CollectionRecord[];
+    if (error) {
+      console.error('Failed to load collections:', error.message);
+      return;
     }
 
-    return [
-      {
-        id: 'seed-1',
-        collectorName: 'Alex Johnson',
-        amount: 1520,
-        collectionDate: new Date().toISOString().slice(0, 10),
-        remarks: 'Community center collection'
-      },
-      {
-        id: 'seed-2',
-        collectorName: 'Priya Singh',
-        amount: 880,
-        collectionDate: new Date(Date.now() - 86400000 * 8).toISOString().slice(0, 10),
-        remarks: 'Monthly recurring donors'
-      }
-    ];
+    const mapped = (data ?? []).map((row: CollectionRow) => this.mapRowToRecord(row));
+    this.collections.set(mapped);
+  }
+
+  async addCollection(payload: CollectionPayload): Promise<void> {
+    const { error } = await this.supabaseService.supabase
+      .from('collections')
+      .insert([
+        {
+          collector_name: payload.collectorName,
+          amount: payload.amount,
+          collection_date: payload.collectionDate,
+          remarks: payload.remarks
+        }
+      ]);
+
+    if (error) {
+      console.error('Failed to add collection:', error.message);
+      return;
+    }
+
+    await this.loadCollections();
+  }
+
+  async updateCollection(id: string, payload: CollectionPayload): Promise<void> {
+    const { error } = await this.supabaseService.supabase
+      .from('collections')
+      .update({
+        collector_name: payload.collectorName,
+        amount: payload.amount,
+        collection_date: payload.collectionDate,
+        remarks: payload.remarks
+      })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Failed to update collection:', error.message);
+      return;
+    }
+
+    await this.loadCollections();
+  }
+
+  async deleteCollection(id: string): Promise<void> {
+    const { error } = await this.supabaseService.supabase
+      .from('collections')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Failed to delete collection:', error.message);
+      return;
+    }
+
+    await this.loadCollections();
+  }
+
+  private mapRowToRecord(row: CollectionRow): CollectionRecord {
+    return {
+      id: row.id,
+      collectorName: row.collector_name,
+      amount: Number(row.amount),
+      collectionDate: row.collection_date,
+      remarks: row.remarks
+    };
   }
 }
