@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 import { AuthService } from './core/services/auth.service';
@@ -14,9 +14,17 @@ export class AppComponent {
   private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
 
-  readonly showShell = computed(() => this.authService.isLoggedIn() && !this.router.url.startsWith('/login'));
+  readonly currentUrl = signal(this.router.url);
+
+  readonly showShell = computed(() => {
+    return this.authService.isLoggedIn() && !this.currentUrl().startsWith('/login');
+  });
 
   constructor() {
-    this.router.events.pipe(filter((event) => event instanceof NavigationEnd)).subscribe();
+    this.router.events
+      .pipe(filter((event) => event instanceof NavigationEnd))
+      .subscribe((event) => {
+        this.currentUrl.set((event as NavigationEnd).urlAfterRedirects);
+      });
   }
 }
